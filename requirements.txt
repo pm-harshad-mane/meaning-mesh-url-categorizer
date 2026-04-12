@@ -1,0 +1,9 @@
+boto3
+faiss-cpu
+numpy
+pandas
+pydantic>=2,<3
+python-json-logger
+pytest
+sentence-transformers
+torch
