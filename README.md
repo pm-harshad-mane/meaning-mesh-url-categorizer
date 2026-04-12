@@ -23,3 +23,11 @@ pytest
 ```
 
 Run the worker loop locally with `PYTHONPATH=src python -m app.main`.
+
+## Build And Push Image
+
+Build and push a Linux ARM64 image for ECS:
+
+```bash
+./scripts/build_and_push_image.sh <account-id>.dkr.ecr.us-east-1.amazonaws.com/meaning-mesh-url-categorizer:dev
+```
