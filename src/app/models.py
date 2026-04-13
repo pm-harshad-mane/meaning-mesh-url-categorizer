@@ -18,6 +18,7 @@ class CategorizerQueueMessage(BaseModel):
     normalized_url: str
     trace_id: str
     fetched_at: int
+    fetched_at_ms: int | None = None
     http_status: int
     content_type: str
     title: str
@@ -41,6 +42,11 @@ class CategorizationRecord(BaseModel):
     trace_id: str
     error_code: str | None = None
     error_message: str | None = None
+    categorizer_dequeued_at_ms: int | None = None
+    categorizer_started_at_ms: int | None = None
+    categorizer_finished_at_ms: int | None = None
+    categorizer_queue_wait_ms: int | None = None
+    categorization_compute_ms: int | None = None
 
 
 @dataclass(frozen=True)

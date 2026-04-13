@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal
 
 from app.config import Settings
 from app.models import Category, CategorizerQueueMessage
+from app.storage.dynamodb import _to_dynamodb_value
 from app.worker import Worker
 
 
@@ -54,6 +56,7 @@ def _message() -> CategorizerQueueMessage:
         normalized_url="https://example.com/article",
         trace_id="trace-123",
         fetched_at=100,
+        fetched_at_ms=100_000,
         http_status=200,
         content_type="text/html",
         title="Example article",
@@ -70,11 +73,17 @@ def test_worker_writes_ready_result() -> None:
         pipeline=FakePipeline(
             categories=[Category(id="IAB9", name="Technology & Computing", score=1.0, rank=1)]
         ),
+        now_ms=_clock([101_250, 101_500, 102_000]),
     )
 
     worker.process_message(_message())
 
     assert storage.records[0].status == "ready"
+    assert storage.records[0].categorizer_queue_wait_ms == 1_250
+    assert storage.records[0].categorization_compute_ms == 500
+    assert storage.records[0].categorizer_dequeued_at_ms == 101_250
+    assert storage.records[0].categorizer_started_at_ms == 101_500
+    assert storage.records[0].categorizer_finished_at_ms == 102_000
     assert storage.deleted == ["sha256:test"]
 
 
@@ -84,10 +93,31 @@ def test_worker_writes_unknown_on_pipeline_failure() -> None:
         settings=_settings(),
         storage=storage,
         pipeline=FakePipeline(categories=[], fail=True),
+        now_ms=_clock([101_250, 101_500, 101_800]),
     )
 
     worker.process_message(_message())
 
     assert storage.records[0].status == "unknown"
     assert storage.records[0].error_code == "CATEGORIZATION_FAILED"
+    assert storage.records[0].categorizer_queue_wait_ms == 1_250
+    assert storage.records[0].categorization_compute_ms == 300
     assert storage.deleted == ["sha256:test"]
+
+
+def test_to_dynamodb_value_converts_nested_floats_to_decimal() -> None:
+    converted = _to_dynamodb_value(
+        {"score": 0.9, "categories": [{"score": 0.5, "rank": 1}]}
+    )
+
+    assert converted["score"] == Decimal("0.9")
+    assert converted["categories"][0]["score"] == Decimal("0.5")
+
+
+def _clock(values: list[int]):
+    iterator = iter(values)
+
+    def _next() -> int:
+        return next(iterator)
+
+    return _next
