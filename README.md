@@ -18,7 +18,8 @@ The categorizer now reads taxonomy entries from `taxonomy/Content_Taxonomy_3.1_2
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install --index-url https://download.pytorch.org/whl/cpu torch
+pip install -r requirements-dev.txt
 pytest
 ```
 
@@ -31,3 +32,12 @@ Build and push a Linux ARM64 image for ECS:
 ```bash
 ./scripts/build_and_push_image.sh <account-id>.dkr.ecr.us-east-1.amazonaws.com/meaning-mesh-url-categorizer:dev
 ```
+
+The image build now pre-downloads the embedder and reranker models into `/opt/huggingface`
+and the runtime runs in offline mode. If you change `EMBED_MODEL_NAME` or
+`RERANK_MODEL_NAME`, rebuild and repush the image before deploying.
+
+The Docker build also installs a CPU-only PyTorch wheel, which avoids pulling
+the large CUDA dependency set that is unnecessary for this ECS worker.
+The runtime image installs only `requirements.txt`; test-only tooling stays in
+`requirements-dev.txt`.

@@ -9,6 +9,8 @@ fi
 IMAGE_URI="$1"
 REGISTRY_HOST="${IMAGE_URI%%/*}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
+EMBED_MODEL_NAME="${EMBED_MODEL_NAME:-BAAI/bge-base-en-v1.5}"
+RERANK_MODEL_NAME="${RERANK_MODEL_NAME:-BAAI/bge-reranker-v2-m3}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 aws ecr get-login-password --region "${AWS_REGION}" \
@@ -16,6 +18,8 @@ aws ecr get-login-password --region "${AWS_REGION}" \
 
 docker buildx build \
   --platform linux/arm64 \
+  --build-arg EMBED_MODEL_NAME="${EMBED_MODEL_NAME}" \
+  --build-arg RERANK_MODEL_NAME="${RERANK_MODEL_NAME}" \
   -t "${IMAGE_URI}" \
   --push \
   "${ROOT_DIR}"

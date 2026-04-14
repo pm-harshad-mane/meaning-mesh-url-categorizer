@@ -6,9 +6,9 @@ from app.models import RetrievalCandidate
 
 
 class Reranker:
-    def __init__(self, model_name: str) -> None:
+    def __init__(self, model_name: str, *, cache_dir: str | None = None) -> None:
         self.model_name = model_name
-        self._model = CrossEncoder(model_name)
+        self._model = CrossEncoder(model_name, cache_folder=cache_dir)
 
     def build_rerank_query(
         self,

@@ -18,6 +18,7 @@ class Settings:
     url_wip_table: str
     categorizer_queue_url: str
     taxonomy_tsv_path: str
+    model_cache_dir: str
     embed_model_name: str
     rerank_model_name: str
     top_k: int
@@ -41,6 +42,7 @@ class Settings:
                 "TAXONOMY_TSV_PATH",
                 "taxonomy/Content_Taxonomy_3.1_2.tsv",
             ),
+            model_cache_dir=os.getenv("MODEL_CACHE_DIR", "/opt/huggingface"),
             embed_model_name=os.getenv("EMBED_MODEL_NAME", "BAAI/bge-base-en-v1.5"),
             rerank_model_name=os.getenv("RERANK_MODEL_NAME", "BAAI/bge-reranker-v2-m3"),
             top_k=_get_int("TOP_K", 5),

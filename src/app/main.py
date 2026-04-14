@@ -27,10 +27,16 @@ def main() -> None:
         settings.url_wip_table,
         region_name=settings.aws_region,
     )
-    embedder = Embedder(settings.embed_model_name)
+    embedder = Embedder(
+        settings.embed_model_name,
+        cache_dir=settings.model_cache_dir,
+    )
     pipeline = CategorizationPipeline(
         retriever=Retriever(embedder),
-        reranker=Reranker(settings.rerank_model_name),
+        reranker=Reranker(
+            settings.rerank_model_name,
+            cache_dir=settings.model_cache_dir,
+        ),
         taxonomy=load_taxonomy(settings.taxonomy_tsv_path),
     )
     worker = Worker(settings=settings, storage=storage, pipeline=pipeline)
